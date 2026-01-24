@@ -1,9 +1,9 @@
 use std/dirs
 
-def v [ file?: path, ...args ] {
+def --wrapped v [ file?: path, ...args ] {
   match $file {
-    null => { nvim ...(fzf -m | split row "\n") }
-    _ => { nvim $file }
+    null => { nvim ...(fzf -m | split row "\n") ...$args }
+    _ => { nvim $file ...$args }
   }
 }
 
