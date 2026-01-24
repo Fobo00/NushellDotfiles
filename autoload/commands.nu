@@ -8,7 +8,7 @@ def v [ file?: path, ...args ] {
 }
 
 def fd [] {
-	do -i {ls **/*} |
+	do -i {ls -a **/*} |
 		where type == dir |
 		get name |
 		to text |
