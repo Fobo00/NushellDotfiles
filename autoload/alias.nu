@@ -12,3 +12,5 @@ def --wrapped ll [...rest] {
 	explore
 }
 alias la = ls -a
+
+alias sshhome = ssh 192.168.1.182
