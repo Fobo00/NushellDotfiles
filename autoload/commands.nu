@@ -12,7 +12,7 @@ def fd [] {
 		where type == dir |
 		get name |
 		to text |
-		fzf |
+		fzf --preview 'tree -C {} | head -n 200' |
 		cd $in
 }
 
