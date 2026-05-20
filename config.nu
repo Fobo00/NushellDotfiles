@@ -17,10 +17,26 @@
 # options using:
 #     config nu --doc | nu-highlight | less -R
 
-$env.config.completions.algorithm = "substring"
+$env.PATH ++= [
+  /var/home/Fobo/.local/share/nvim/mason/bin,
+  /home/Fobo/.config/carapace/bin,
+  /home/Fobo/.cargo/bin,
+  /home/Fobo/.local/bin,
+  /home/Fobo/bin,
+  /usr/local/bin,
+  /usr/bin,
+  /bin,
+  /usr/local/sbin,
+  /home/linuxbrew/.linuxbrew/bin,
+  /home/linuxbrew/.linuxbrew/sbin
+]
+
+$env.config.completions.algorithm = "prefix"
 $env.config.edit_mode = "vi"
 $env.config.highlight_resolved_externals = true
 $env.config.buffer_editor = "nvim"
+$env.EDITOR = "nvim"
+$env.config.show_banner = false
 
 $env.FZF_DEFAULT_OPTS = r#'--style full 
     --border --padding 1,2 
@@ -50,15 +66,35 @@ def 'is-installed' [ app: string ] {
 #############################################################
 # CARAPACE
 #---------------------------------------------------
-if (is-installed carapace) {
-	$env.CARAPACE_BRIDGES = 'fish,bash,inshellisense' # optional
-	mkdir $"($nu.cache-dir)"
-	carapace _carapace nushell | save --force $"($nu.cache-dir)/carapace.nu"
+# $env.CARAPACE_BRIDGES = 'fish,bash,inshellisense' # optional
+# $env.CARAPACE_BRIDGES = 'fish'
+# if ((is-installed carapace) and not ($"($nu.cache-dir)/carapace.nu" | path exists)) {
+#       mkdir $"($nu.cache-dir)"
+#       carapace _carapace nushell | save --force $"($nu.cache-dir)/carapace.nu"
+# }
+# source $"($nu.cache-dir)/carapace.nu"
 
-	# ${UserConfigDir}/nushell/config.nu
-	source $"($nu.cache-dir)/carapace.nu"
+#############################################################
+# COMPLETIONS
+#---------------------------------------------------
+let fish_completer = {|spans|
+    fish --command $"complete '--do-complete=($spans | str replace --all "'" "\\'" | str join ' ')'"
+    | from tsv --flexible --noheaders --no-infer
+    | rename value description
+    | update value {|row|
+      let value = $row.value
+      let need_quote = ['\' ',' '[' ']' '(' ')' ' ' '\t' "'" '"' "`"] | any {$in in $value}
+      if ($need_quote and ($value | path exists)) {
+        let expanded_path = if ($value starts-with ~) {$value | path expand --no-symlink} else {$value}
+        $'"($expanded_path | str replace --all "\"" "\\\"")"'
+      } else {$value}
+    }
 }
 
+$env.config.completions.external = {
+    completer: $fish_completer,
+    enable: true,
+}
 
 #############################################################
 # STARSHIP
@@ -67,3 +103,5 @@ if (is-installed starship) {
 	mkdir ($nu.data-dir | path join "vendor/autoload")
 	starship init nu | save -f ($nu.data-dir | path join "vendor/autoload/starship.nu")
 }
+
+fastfetch

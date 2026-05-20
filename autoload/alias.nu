@@ -4,13 +4,13 @@ def --wrapped ll [...rest] {
 	if (
 		$in |
 		all {|l| $l.target == null}
-	) { reject target } |
-	if (
+	) { reject target } else $in |
+    if (
 		$in |
 		all {|l| $l.readonly == false}
-	) { reject readonly } |
+	) { reject readonly } else $in |
 	explore
 }
 alias la = ls -a
 
-alias sshhome = ssh fobo@192.168.1.182
+alias sshhome = ssh fobo@192.168.1.183
